@@ -1,25 +1,25 @@
 import React, { useState, useCallback } from 'react'
 import {
-  Card,
-  CardContent,
   Typography,
   IconButton,
   Box,
   Fade,
   Chip,
-  Grow,
-  useTheme,
-  useMediaQuery,
   Skeleton
 } from '@mui/material'
 import {
   Favorite,
   FavoriteBorder,
-  Share,
   Refresh,
   TouchApp
 } from '@mui/icons-material'
 import ShareButton from './ShareButton'
+import { useResponsive, useAnimationDelay } from '@/hooks'
+import { COLORS, SIZES, ANIMATION_DURATION } from '@/constants'
+import {
+  createIconButtonStyle,
+  fadeInUpAnimation
+} from '@/styles/commonStyles'
 
 interface QuoteCardProps {
   quote?: {
@@ -38,9 +38,8 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
   },
   loading = false
 }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+  const { isMobile } = useResponsive()
+  useAnimationDelay()
 
   const [liked, setLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(quote.like_count)
@@ -55,7 +54,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
       // 애니메이션 종료 후 상태 리셋
       setTimeout(() => {
         setLikeAnimating(false)
-      }, 600)
+      }, ANIMATION_DURATION.SHORT)
 
       // TODO: API 호출
     }
@@ -68,213 +67,168 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
 
   if (loading) {
     return (
-      <Card
+      <Box
         sx={{
-          maxWidth: isMobile ? '100%' : isTablet ? 500 : 600,
+          maxWidth: SIZES.QUOTE_CARD.MAX_WIDTH,
           mx: 'auto',
-          borderRadius: isMobile ? 3 : 4,
-          boxShadow: '0 12px 40px rgba(156, 175, 136, 0.15)',
+          textAlign: 'center',
+          py: { xs: 4, sm: 6 },
+          px: { xs: 3, sm: 4 }
         }}
       >
-        <CardContent sx={{ p: isMobile ? 4 : 6 }}>
-          <Skeleton variant="text" height={60} sx={{ mb: 2 }} />
-          <Skeleton variant="text" height={40} sx={{ mb: 2 }} />
-          <Skeleton variant="text" height={40} sx={{ mb: 4 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2 }}>
-            <Skeleton variant="circular" width={40} height={40} />
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Skeleton variant="circular" width={40} height={40} />
-              <Skeleton variant="circular" width={40} height={40} />
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+        <Skeleton variant="text" height={80} sx={{ mb: 4, borderRadius: 2 }} />
+        <Skeleton variant="text" height={40} sx={{ mb: 2, borderRadius: 2 }} />
+        <Skeleton variant="text" height={40} sx={{ mb: 6, borderRadius: 2 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Skeleton variant="circular" width={48} height={48} />
+          <Skeleton variant="circular" width={48} height={48} />
+          <Skeleton variant="circular" width={48} height={48} />
+        </Box>
+      </Box>
     )
   }
 
 
   return (
-    <Fade in={true} timeout={800}>
-      <Card
+    <Fade in={true} timeout={1000}>
+      <Box
         sx={{
-          maxWidth: isMobile ? '100%' : isTablet ? 500 : 600,
+          maxWidth: SIZES.QUOTE_CARD.MAX_WIDTH,
           mx: 'auto',
-          borderRadius: isMobile ? 3 : 4,
-          boxShadow: {
-            xs: '0 8px 24px rgba(156, 175, 136, 0.12)',
-            sm: '0 12px 40px rgba(156, 175, 136, 0.15)',
-          },
-          background: {
-            xs: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(247,243,233,0.8) 100%)',
-            sm: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(247,243,233,0.6) 100%)',
-          },
-          backdropFilter: 'blur(10px)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            transform: isMobile ? 'none' : 'translateY(-4px)',
-            boxShadow: isMobile
-              ? '0 8px 24px rgba(156, 175, 136, 0.12)'
-              : '0 16px 48px rgba(156, 175, 136, 0.2)',
-          },
+          textAlign: 'center',
+          py: { xs: 4, sm: 6 },
+          px: { xs: 3, sm: 4 },
+          ...fadeInUpAnimation
         }}
       >
-        <CardContent sx={{
-          p: {
-            xs: 3,
-            sm: 4,
-            md: 6
-          }
-        }}>
-          <Typography
-            variant={isMobile ? 'h3' : 'h2'}
-            sx={{
-              mb: {
-                xs: 3,
-                sm: 4
-              },
-              color: 'text.primary',
-              fontWeight: 300,
-              lineHeight: {
-                xs: 1.6,
-                sm: 1.8
-              },
-              letterSpacing: '0.5px',
-              minHeight: {
-                xs: '80px',
-                sm: '100px',
-                md: '120px'
-              },
-              fontSize: {
-                xs: '1.4rem',
-                sm: '1.8rem',
-                md: '2rem'
-              },
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              wordBreak: 'keep-all',
-              overflowWrap: 'break-word',
-            }}
-          >
-            "{quote.content}"
-          </Typography>
+        {/* 명언 텍스트 */}
+        <Typography
+          sx={{
+            mb: { xs: 6, sm: 8 },
+            color: COLORS.TEXT_PRIMARY,
+            fontWeight: 300,
+            lineHeight: { xs: 1.7, sm: 1.8 },
+            letterSpacing: '0.5px',
+            fontSize: {
+              xs: '1.5rem',
+              sm: '2rem',
+              md: '2.2rem'
+            },
+            textAlign: 'center',
+            wordBreak: 'keep-all',
+            overflowWrap: 'break-word',
+            minHeight: { xs: '60px', sm: '80px' },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              fontSize: { xs: '3rem', sm: '4rem' },
+              color: COLORS.PRIMARY,
+              position: 'absolute',
+              left: { xs: -15, sm: -20 },
+              top: { xs: -15, sm: -20 },
+              opacity: 0.3,
+              fontFamily: 'serif'
+            },
+            '&::after': {
+              content: '""',
+              fontSize: { xs: '3rem', sm: '4rem' },
+              color: COLORS.PRIMARY,
+              position: 'absolute',
+              right: { xs: -15, sm: -20 },
+              bottom: { xs: -15, sm: -20 },
+              opacity: 0.3,
+              fontFamily: 'serif'
+            }
+          }}
+        >
+          {quote.content}
+        </Typography>
 
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: isMobile ? 'column' : 'row',
-              justifyContent: 'space-between',
-              alignItems: isMobile ? 'stretch' : 'center',
-              pt: {
-                xs: 2,
-                sm: 2
-              },
-              borderTop: '1px solid rgba(0,0,0,0.08)',
-              gap: isMobile ? 2 : 0,
-            }}
-          >
-            {/* 공감 영역 */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              justifyContent: isMobile ? 'center' : 'flex-start'
-            }}>
-              <Grow in={!likeAnimating}>
-                <IconButton
-                  onClick={handleLike}
-                  disabled={likeAnimating}
-                  sx={{
-                    color: liked ? 'secondary.main' : 'text.secondary',
-                    transform: likeAnimating ? 'scale(1.3)' : 'scale(1)',
-                    background: liked
-                      ? 'linear-gradient(135deg, rgba(212, 165, 165, 0.2) 0%, rgba(212, 165, 165, 0.3) 100%)'
-                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(247, 243, 233, 0.2) 100%)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(156, 175, 136, 0.15)',
-                    borderRadius: '12px',
-                    transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, rgba(212, 165, 165, 0.3) 0%, rgba(212, 165, 165, 0.4) 100%)',
-                      color: 'secondary.main',
-                      transform: 'scale(1.1) translateY(-1px)',
-                      boxShadow: '0 4px 16px rgba(212, 165, 165, 0.25)',
-                      border: '1px solid rgba(212, 165, 165, 0.3)',
-                    },
-                    '&:active': {
-                      transform: 'scale(0.95)',
-                    },
-                  }}
-                >
-                  {liked ? <Favorite /> : <FavoriteBorder />}
-                </IconButton>
-              </Grow>
+        {/* 버튼 영역 */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: { xs: 3, sm: 2 },
+          }}
+        >
+          {/* 공감 영역 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            order: { xs: 2, sm: 1 }
+          }}>
+            <IconButton
+              onClick={handleLike}
+              disabled={likeAnimating}
+              sx={{
+                ...createIconButtonStyle({
+                  backgroundColor: liked ? COLORS.PRIMARY : COLORS.BACKGROUND_OVERLAY,
+                  color: liked ? 'white' : COLORS.TEXT_SECONDARY,
+                  hoverBackgroundColor: COLORS.PRIMARY
+                }),
+                transform: likeAnimating ? 'scale(1.2)' : 'scale(1)'
+              }}
+            >
+              {liked ? <Favorite /> : <FavoriteBorder />}
+            </IconButton>
 
-              <Chip
-                icon={<TouchApp sx={{ fontSize: '16px !important' }} />}
-                label={isMobile
-                  ? `${likeCount}`
-                  : `${likeCount}명이 공감했어요`
+            <Chip
+              icon={<TouchApp sx={{ fontSize: '16px !important' }} />}
+              label={isMobile
+                ? `${likeCount}`
+                : `${likeCount}명이 공감`
+              }
+              size={isMobile ? 'small' : 'medium'}
+              sx={{
+                backgroundColor: COLORS.BACKGROUND_OVERLAY,
+                color: COLORS.TEXT_SECONDARY,
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                fontWeight: 400,
+                border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                borderRadius: '20px',
+                height: { xs: 28, sm: 32 },
+                '&:hover': {
+                  backgroundColor: `${COLORS.PRIMARY}1A`, // 1A는 10% opacity
+                  color: COLORS.PRIMARY
                 }
-                size={isMobile ? 'small' : 'medium'}
-                sx={{
-                  background: 'linear-gradient(135deg, rgba(212, 165, 165, 0.15) 0%, rgba(212, 165, 165, 0.25) 100%)',
-                  color: 'secondary.dark',
-                  fontSize: {
-                    xs: '0.75rem',
-                    sm: '0.85rem'
-                  },
-                  fontWeight: 500,
-                  border: '1px solid rgba(212, 165, 165, 0.2)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '12px',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, rgba(212, 165, 165, 0.3) 0%, rgba(212, 165, 165, 0.5) 100%)',
-                    color: 'white',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(212, 165, 165, 0.3)',
-                  },
-                }}
-              />
-            </Box>
-
-            {/* 액션 버튼 영역 */}
-            <Box sx={{
-              display: 'flex',
-              gap: 1,
-              justifyContent: isMobile ? 'center' : 'flex-end'
-            }}>
-              <ShareButton
-                quote={quote}
-                size={isMobile ? 'small' : 'medium'}
-              />
-
-              <IconButton
-                onClick={handleNextQuote}
-                sx={{
-                  color: 'text.secondary',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(247, 243, 233, 0.2) 100%)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(156, 175, 136, 0.15)',
-                  borderRadius: '12px',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, rgba(156, 175, 136, 0.3) 0%, rgba(156, 175, 136, 0.4) 100%)',
-                    color: 'primary.main',
-                    transform: 'rotate(180deg) translateY(-1px)',
-                    boxShadow: '0 4px 16px rgba(156, 175, 136, 0.25)',
-                    border: '1px solid rgba(156, 175, 136, 0.3)',
-                  },
-                }}
-              >
-                <Refresh />
-              </IconButton>
-            </Box>
+              }}
+            />
           </Box>
-        </CardContent>
-      </Card>
+
+          {/* 액션 버튼 영역 */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1.5,
+            order: { xs: 1, sm: 2 }
+          }}>
+            <ShareButton
+              quote={quote}
+            />
+
+            <IconButton
+              onClick={handleNextQuote}
+              sx={{
+                ...createIconButtonStyle(),
+                '&:hover': {
+                  backgroundColor: COLORS.PRIMARY,
+                  color: 'white',
+                  transform: 'rotate(180deg) scale(1.05)',
+                  boxShadow: `0 4px 12px ${COLORS.PRIMARY}4D`,
+                }
+              }}
+            >
+              <Refresh />
+            </IconButton>
+          </Box>
+        </Box>
+      </Box>
     </Fade>
   )
 }

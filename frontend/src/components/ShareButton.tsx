@@ -7,8 +7,6 @@ import {
   ListItemText,
   Snackbar,
   Alert,
-  useTheme,
-  useMediaQuery,
   Tooltip
 } from '@mui/material'
 import {
@@ -19,6 +17,10 @@ import {
   Instagram,
   ChatBubbleOutline
 } from '@mui/icons-material'
+import { useResponsive, useSnackbar } from '@/hooks'
+import { COLORS, SOCIAL_COLORS } from '@/constants'
+import { createIconButtonStyle } from '@/styles/commonStyles'
+import { liquidGlassMenu, liquidGlassMenuItem, createSocialButtonStyle } from '@/styles/liquidGlass'
 
 interface ShareButtonProps {
   quote: {
@@ -26,18 +28,12 @@ interface ShareButtonProps {
     content: string
     like_count: number
   }
-  size?: 'small' | 'medium' | 'large'
 }
 
-const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+const ShareButton: React.FC<ShareButtonProps> = ({ quote }) => {
+  const { isMobile } = useResponsive()
+  const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error'
-  })
 
   const open = Boolean(anchorEl)
 
@@ -49,9 +45,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
     setAnchorEl(null)
   }
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
-    setSnackbar({ open: true, message, severity })
-  }
 
   const handleNativeShare = async () => {
     if (navigator.share) {
@@ -72,10 +65,10 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
   const handleCopyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(`"${quote.content}"\n\n- 하루 한 문장\n${window.location.href}`)
-      showSnackbar('클립보드에 복사되었습니다!')
+      showSuccess('클립보드에 복사되었습니다!')
       handleClose()
     } catch (err) {
-      showSnackbar('복사에 실패했습니다.', 'error')
+      showError('복사에 실패했습니다.')
       handleClose()
     }
   }
@@ -113,27 +106,13 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
   }
 
   // 모바일에서 네이티브 공유 지원시 우선 사용
-  if (isMobile && navigator.share) {
+  if (isMobile && typeof navigator.share === 'function') {
     return (
       <>
         <Tooltip title="공유하기" arrow>
           <IconButton
             onClick={handleNativeShare}
-            sx={{
-              color: 'text.secondary',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(247, 243, 233, 0.2) 100%)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(156, 175, 136, 0.15)',
-              borderRadius: '12px',
-              transition: 'all 0.3s ease-in-out',
-              '&:hover': {
-                background: 'linear-gradient(135deg, rgba(156, 175, 136, 0.3) 0%, rgba(156, 175, 136, 0.4) 100%)',
-                color: 'primary.main',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 16px rgba(156, 175, 136, 0.25)',
-                border: '1px solid rgba(156, 175, 136, 0.3)',
-              },
-            }}
+            sx={createIconButtonStyle()}
           >
             <Share />
           </IconButton>
@@ -147,21 +126,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
       <Tooltip title="공유하기" arrow>
         <IconButton
           onClick={handleClick}
-          sx={{
-            color: 'text.secondary',
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(247, 243, 233, 0.2) 100%)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(156, 175, 136, 0.15)',
-            borderRadius: '12px',
-            transition: 'all 0.3s ease-in-out',
-            '&:hover': {
-              background: 'linear-gradient(135deg, rgba(156, 175, 136, 0.3) 0%, rgba(156, 175, 136, 0.4) 100%)',
-              color: 'primary.main',
-              transform: 'translateY(-1px)',
-              boxShadow: '0 4px 16px rgba(156, 175, 136, 0.25)',
-              border: '1px solid rgba(156, 175, 136, 0.3)',
-            },
-          }}
+          sx={createIconButtonStyle()}
         >
           <Share />
         </IconButton>
@@ -174,18 +139,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         PaperProps={{
           elevation: 8,
           sx: {
-            borderRadius: '16px',
+            ...liquidGlassMenu,
             mt: 1,
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(247,243,233,0.9) 50%, rgba(255,255,255,0.92) 100%)',
-            backdropFilter: 'blur(20px) saturate(1.1)',
-            WebkitBackdropFilter: 'blur(20px) saturate(1.1)',
-            border: '1.5px solid rgba(156, 175, 136, 0.25)',
-            boxShadow: `
-              0 12px 40px rgba(156, 175, 136, 0.15),
-              0 6px 20px rgba(212, 165, 165, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8)
-            `,
-          },
+            '& .MuiMenuItem-root': {
+              ...liquidGlassMenuItem
+            }
+          } as any,
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -193,19 +152,13 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         <MenuItem
           onClick={handleCopyToClipboard}
           sx={{
-            borderRadius: '12px',
-            mx: 0.5,
-            mb: 0.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, rgba(156, 175, 136, 0.2) 0%, rgba(156, 175, 136, 0.3) 100%)',
-              transform: 'translateX(4px)',
-              boxShadow: '0 2px 8px rgba(156, 175, 136, 0.2)',
-            },
+            color: COLORS.TEXT_SECONDARY,
+            fontSize: '0.9rem',
+            fontWeight: 400
           }}
         >
           <ListItemIcon>
-            <ContentCopy fontSize="small" sx={{ color: 'text.secondary' }} />
+            <ContentCopy fontSize="small" sx={{ color: COLORS.TEXT_LIGHT, transition: 'color 0.2s ease' }} />
           </ListItemIcon>
           <ListItemText
             primary="링크 복사"
@@ -219,23 +172,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         <MenuItem
           onClick={() => handleSocialShare('facebook')}
           sx={{
-            borderRadius: '12px',
-            mx: 0.5,
-            mb: 0.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)',
-              color: 'white',
-              transform: 'translateX(4px)',
-              boxShadow: '0 4px 16px rgba(24, 119, 242, 0.3)',
-              '& .MuiListItemIcon-root': {
-                color: 'white',
-              },
-            },
+            color: COLORS.TEXT_SECONDARY,
+            fontSize: '0.9rem',
+            fontWeight: 400,
+            ...createSocialButtonStyle(SOCIAL_COLORS.FACEBOOK)
           }}
         >
           <ListItemIcon>
-            <Facebook fontSize="small" sx={{ color: '#1877f2' }} />
+            <Facebook fontSize="small" sx={{ color: COLORS.TEXT_LIGHT, transition: 'color 0.2s ease' }} />
           </ListItemIcon>
           <ListItemText
             primary="Facebook"
@@ -249,23 +193,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         <MenuItem
           onClick={() => handleSocialShare('twitter')}
           sx={{
-            borderRadius: '12px',
-            mx: 0.5,
-            mb: 0.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #1da1f2 0%, #64b5f6 100%)',
-              color: 'white',
-              transform: 'translateX(4px)',
-              boxShadow: '0 4px 16px rgba(29, 161, 242, 0.3)',
-              '& .MuiListItemIcon-root': {
-                color: 'white',
-              },
-            },
+            color: COLORS.TEXT_SECONDARY,
+            fontSize: '0.9rem',
+            fontWeight: 400,
+            ...createSocialButtonStyle(SOCIAL_COLORS.TWITTER)
           }}
         >
           <ListItemIcon>
-            <Twitter fontSize="small" sx={{ color: '#1da1f2' }} />
+            <Twitter fontSize="small" sx={{ color: COLORS.TEXT_LIGHT, transition: 'color 0.2s ease' }} />
           </ListItemIcon>
           <ListItemText
             primary="Twitter"
@@ -279,23 +214,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         <MenuItem
           onClick={() => handleSocialShare('instagram')}
           sx={{
-            borderRadius: '12px',
-            mx: 0.5,
-            mb: 0.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #e4405f 0%, #f06292 100%)',
-              color: 'white',
-              transform: 'translateX(4px)',
-              boxShadow: '0 4px 16px rgba(228, 64, 95, 0.3)',
-              '& .MuiListItemIcon-root': {
-                color: 'white',
-              },
-            },
+            color: COLORS.TEXT_SECONDARY,
+            fontSize: '0.9rem',
+            fontWeight: 400,
+            ...createSocialButtonStyle(SOCIAL_COLORS.INSTAGRAM)
           }}
         >
           <ListItemIcon>
-            <Instagram fontSize="small" sx={{ color: '#e4405f' }} />
+            <Instagram fontSize="small" sx={{ color: COLORS.TEXT_LIGHT, transition: 'color 0.2s ease' }} />
           </ListItemIcon>
           <ListItemText
             primary="Instagram"
@@ -314,22 +240,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
         <MenuItem
           onClick={() => handleSocialShare('threads')}
           sx={{
-            borderRadius: '12px',
-            mx: 0.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
-              color: 'white',
-              transform: 'translateX(4px)',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-              '& .MuiListItemIcon-root': {
-                color: 'white',
-              },
-            },
+            color: COLORS.TEXT_SECONDARY,
+            fontSize: '0.9rem',
+            fontWeight: 400,
+            ...createSocialButtonStyle(SOCIAL_COLORS.THREADS)
           }}
         >
           <ListItemIcon>
-            <ChatBubbleOutline fontSize="small" sx={{ color: '#000000' }} />
+            <ChatBubbleOutline fontSize="small" sx={{ color: COLORS.TEXT_LIGHT, transition: 'color 0.2s ease' }} />
           </ListItemIcon>
           <ListItemText
             primary="Threads"
@@ -349,21 +267,21 @@ const ShareButton: React.FC<ShareButtonProps> = ({ quote, size = 'medium' }) => 
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        onClose={hideSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          onClose={hideSnackbar}
           severity={snackbar.severity}
           variant="filled"
           sx={{
-            background: snackbar.severity === 'success'
-              ? 'linear-gradient(135deg, rgba(156, 175, 136, 0.95) 0%, rgba(156, 175, 136, 1) 100%)'
-              : 'linear-gradient(135deg, rgba(244, 67, 54, 0.95) 0%, rgba(244, 67, 54, 1) 100%)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            backgroundColor: snackbar.severity === 'success' ? COLORS.SUCCESS : COLORS.ERROR,
+            color: 'white',
+            borderRadius: '12px',
+            border: 'none',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
+            fontSize: '0.9rem',
+            fontWeight: 400,
             '& .MuiAlert-icon': {
               color: 'white',
             },

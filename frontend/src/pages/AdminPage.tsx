@@ -12,7 +12,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   IconButton,
   Dialog,
   DialogTitle,
@@ -25,18 +24,12 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
-  Paper,
   Skeleton
 } from '@mui/material'
 import {
   Check,
   Close,
-  Visibility,
-  Edit,
-  Delete,
-  Dashboard,
-  Assessment,
-  People
+  Dashboard
 } from '@mui/icons-material'
 
 interface Submission {
@@ -102,11 +95,11 @@ const AdminPage: React.FC = () => {
     }, 1000)
   }, [])
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)
   }
 
-  const handleReview = (submission: Submission, action: 'approve' | 'reject') => {
+  const handleReview = (submission: Submission, _: 'approve' | 'reject') => {
     setSelectedSubmission(submission)
     setReviewNote('')
     setReviewDialog(true)

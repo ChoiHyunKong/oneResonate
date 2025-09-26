@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react'
 import {
   Box,
-  TextField,
   Button,
   Typography,
   Card,
@@ -10,8 +9,6 @@ import {
   Chip,
   Fade,
   Zoom,
-  useTheme,
-  useMediaQuery,
   LinearProgress,
   IconButton,
   Tooltip
@@ -23,15 +20,20 @@ import {
   FormatQuote,
   Check
 } from '@mui/icons-material'
+import { useResponsive, useAnimationDelay } from '@/hooks'
+import { COLORS, TEXT_LIMITS, ANIMATION_DURATION } from '@/constants'
+import {
+  createCardStyle,
+  buttonHoverEffect
+} from '@/styles/commonStyles'
 
 interface SubmissionFormProps {
   onSubmit?: (content: string) => Promise<void>
 }
 
 const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+  const { isMobile, isTablet } = useResponsive()
+  useAnimationDelay()
 
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -40,12 +42,12 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
     message: string
   }>({ type: null, message: '' })
   const [charCount, setCharCount] = useState(0)
-  const textFieldRef = useRef<HTMLInputElement>(null)
+  const textFieldRef = useRef<HTMLTextAreaElement>(null)
 
-  const maxLength = 150
-  const minLength = 10
+  const maxLength = TEXT_LIMITS.QUOTE_MAX_LENGTH
+  const minLength = TEXT_LIMITS.QUOTE_MIN_LENGTH
 
-  const handleContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = event.target.value
     if (value.length <= maxLength) {
       setContent(value)
@@ -84,7 +86,7 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
         await onSubmit(content.trim())
       } else {
         // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, ANIMATION_DURATION.LONG))
       }
 
       setSubmitStatus({
@@ -125,13 +127,10 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
     <Fade in={true} timeout={800}>
       <Card
         sx={{
-          maxWidth: isMobile ? '100%' : isTablet ? 500 : 600,
-          mx: 'auto',
-          borderRadius: isMobile ? 3 : 4,
-          boxShadow: {
-            xs: '0 8px 24px rgba(156, 175, 136, 0.12)',
-            sm: '0 12px 40px rgba(156, 175, 136, 0.15)',
-          },
+          ...createCardStyle({
+            maxWidth: isMobile ? '100%' : isTablet ? 500 : 600,
+            borderRadius: isMobile ? 3 : 4
+          } as any),
           background: {
             xs: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(247,243,233,0.8) 100%)',
             sm: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(247,243,233,0.6) 100%)',
@@ -179,84 +178,96 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
           </Box>
 
           {/* 제안 칩들 */}
-          {!content && (
-            <Zoom in={true} style={{ transitionDelay: '400ms' }}>
-              <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                  <Lightbulb sx={{ color: 'primary.main', mr: 1, fontSize: '1.1rem' }} />
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-                    이런 문장들은 어떠세요?
-                  </Typography>
-                </Box>
-                <Box sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  justifyContent: 'center'
-                }}>
-                  {suggestions.map((suggestion, index) => (
-                    <Chip
-                      key={index}
-                      label={suggestion}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      sx={{
-                        backgroundColor: 'primary.light',
-                        color: 'primary.dark',
-                        fontSize: '0.8rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          backgroundColor: 'primary.main',
-                          color: 'white',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 4px 12px rgba(156, 175, 136, 0.3)',
-                        },
-                      }}
-                    />
-                  ))}\n                </Box>
+          <Zoom in={true} style={{ transitionDelay: '400ms' }}>
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                <Lightbulb sx={{ color: 'primary.main', mr: 1, fontSize: '1.1rem' }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
+                  이런 문장들은 어떠세요?
+                </Typography>
               </Box>
-            </Zoom>
-          )}
+              <Box sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                justifyContent: 'center'
+              }}>
+                {suggestions.map((suggestion, index) => (
+                  <Chip
+                    key={index}
+                    label={suggestion}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    sx={{
+                      backgroundColor: 'primary.light',
+                      color: 'primary.dark',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        backgroundColor: COLORS.PRIMARY,
+                        color: 'white',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                      },
+                    }}
+                  />
+                ))}      </Box>
+            </Box>
+          </Zoom>
 
           {/* 입력 필드 */}
           <Box sx={{ mb: 3 }}>
-            <TextField
-              ref={textFieldRef}
-              multiline
-              rows={isMobile ? 3 : 4}
-              fullWidth
-              value={content}
-              onChange={handleContentChange}
-              placeholder="마음 깊은 곳에서 우러나오는 따뜻한 문장을 적어주세요..."
-              disabled={isSubmitting}
+            <Box
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(255,255,255,0.7)',
-                  fontSize: isMobile ? '0.95rem' : '1.1rem',
-                  lineHeight: 1.8,
-                  letterSpacing: '0.3px',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'rgba(255,255,255,0.95)',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'primary.main',
-                      borderWidth: '2px',
-                    },
-                  },
+                height: '140px',
+                width: '100%',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: 2,
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                position: 'relative',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  borderColor: 'rgba(0, 0, 0, 0.87)'
                 },
-                '& .MuiInputBase-input': {
-                  '&::placeholder': {
-                    color: 'text.secondary',
-                    opacity: 0.7,
-                    fontStyle: 'italic',
-                  },
-                },
+                '&:focus-within': {
+                  backgroundColor: 'rgba(255,255,255,0.95)',
+                  borderColor: COLORS.PRIMARY,
+                  borderWidth: '2px'
+                }
               }}
-            />
+            >
+              <textarea
+                ref={textFieldRef}
+                value={content}
+                onChange={handleContentChange}
+                placeholder="마음 깊은 곳에서 우러나오는 따뜻한 문장을 적어주세요..."
+                disabled={isSubmitting}
+                rows={4}
+                cols={50}
+                style={{
+                  width: '100%',
+                  height: '108px',
+                  minWidth: '100%',
+                  maxWidth: '100%',
+                  minHeight: '108px',
+                  maxHeight: '108px',
+                  border: 'none',
+                  outline: 'none',
+                  backgroundColor: 'transparent',
+                  resize: 'none',
+                  padding: '16px',
+                  fontFamily: 'inherit',
+                  fontSize: '1.1rem',
+                  lineHeight: '1.4',
+                  letterSpacing: '0.3px',
+                  color: 'rgba(0, 0, 0, 0.87)',
+                  boxSizing: 'border-box',
+                  overflow: 'auto',
+                  verticalAlign: 'top',
+                  display: 'block'
+                }}
+              />
+            </Box>
 
             {/* 글자수 카운터 */}
             <Box sx={{
@@ -308,7 +319,7 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
                 borderRadius: 2,
                 backgroundColor: 'rgba(156, 175, 136, 0.1)',
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: charCount >= maxLength * 0.9 ? 'warning.main' : 'primary.main',
+                  backgroundColor: charCount >= maxLength * 0.9 ? 'warning.main' : COLORS.PRIMARY,
                   borderRadius: 2,
                 },
               }}
@@ -349,17 +360,14 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit }) => {
                 py: { xs: 1.5, sm: 2 },
                 fontSize: { xs: '0.95rem', sm: '1rem' },
                 fontWeight: 600,
-                backgroundColor: 'primary.main',
+                backgroundColor: COLORS.PRIMARY,
                 borderRadius: 6,
-                boxShadow: '0 4px 16px rgba(156, 175, 136, 0.3)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: `0 4px 16px ${COLORS.PRIMARY}4D`,
+                ...buttonHoverEffect,
                 '&:hover': {
-                  backgroundColor: 'primary.dark',
+                  backgroundColor: COLORS.PRIMARY_DARK,
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 24px rgba(156, 175, 136, 0.4)',
-                },
-                '&:active': {
-                  transform: 'translateY(0px)',
+                  boxShadow: `0 8px 24px ${COLORS.PRIMARY}66`,
                 },
                 '&:disabled': {
                   backgroundColor: 'action.disabledBackground',

@@ -12,7 +12,7 @@ import {
   limit
 } from 'firebase/firestore'
 import { db } from '@/config/firebase'
-import type { Quote, Submission, ApiResponse, TodayQuoteResponse } from '../../shared/types'
+import type { Quote, Submission, ApiResponse, TodayQuoteResponse } from '@/types'
 
 // 컬렉션 참조
 const quotesCollection = collection(db, 'quotes')
